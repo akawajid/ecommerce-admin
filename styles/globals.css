@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-input, textarea{
+input, textarea, select{
   @apply border-gray-300 border-2 rounded-md p-2 w-full mb-2
 }
 
-input:focus, textarea:focus{
+input:focus, textarea:focus, select:focus{
   @apply border-blue-900
 }
 
@@ -15,5 +15,24 @@ h1{
 }
 
 .btn-primary{
-  @apply rounded-sm bg-blue-900 text-white p-2 px-4 my-2
+  @apply rounded-md bg-blue-900 text-white p-2 px-4 my-2
+}
+
+.btn-default{
+  @apply rounded-md bg-gray-200 p-2 px-4 m-2
+}
+
+table.basic{
+  @apply w-full bg-white rounded-sm shadow-md;
+}
+table.basic thead tr td,
+table.basic thead tr th
+{
+  @apply text-sm text-gray-600 uppercase border-b border-gray-200 px-4 py-2;
+}
+table.basic tr td{
+  @apply px-4 py-1;
+}
+table.basic a, table.basic .links{
+  @apply px-4 rounded-sm inline-flex mx-1 items-center gap-1 text-sm py-1;
 }
