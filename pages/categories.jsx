@@ -207,7 +207,6 @@ export default function Categories() {
                     <button
                       onClick={() => {
                         setDeleteCategoryId(item._id);
-                        // deleteCategory(item._id);
                       }}
                       className="links"
                     >
