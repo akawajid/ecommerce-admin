@@ -13,7 +13,12 @@ export default function Categories() {
     properties: [],
   });
   const [deleteCategoryId, setDeleteCategoryId] = useState(null);
-  const [properties, setProperties] = useState([]);
+  // const [properties, setProperties] = useState([]);
+
+  const [properties, setProperties] = useState([
+    { name: 'color', value: 'red,green,blue' },
+    { name: 'size', value: 'L,M,S' },
+  ]);
 
   const getCategories = () => {
     axios.get("/api/categories").then((response) => {
@@ -45,12 +50,21 @@ export default function Categories() {
   };
 
   const addCategoryProperties = () => {
-    setProperties(prev => [...prev, { name: "", value: "" }]);
+    setProperties((prev) => [...prev, { name: "", value: "" }]);
   };
 
-  const handleChangeProperties = (index, name, value) => {
-    // setProperties(prev => [...prev, { name, value }]);
-  }
+  const handleChangeProperties = (e, index) => {
+    const { name, value } = e.target;
+
+    const newProperties = properties.map((property, i) => {
+      if(i === index){
+        return {...property, [name]: value};
+      }
+      return property;
+    });
+
+    setProperties(newProperties);
+  };
 
   useEffect(() => {
     getCategories();
@@ -67,6 +81,7 @@ export default function Categories() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    //setCategoryData({...categoryData, properties});
 
     if (categoryData._id) {
       await axios.put("/api/categories", categoryData);
@@ -116,7 +131,7 @@ export default function Categories() {
       <h1 className="my-2 mx-6">Add Category</h1>
       <form onSubmit={handleSubmit} className="ml-6 my-2 w-1/2">
         <div className="flex gap-1">
-          <div>
+          <div className="w-2/3">
             <label>New Category name</label>
             <input
               type="text"
@@ -127,7 +142,7 @@ export default function Categories() {
               value={categoryData.name}
             />
           </div>
-          <div>
+          <div className="w-1/3">
             <label>
               <br />
             </label>
@@ -152,15 +167,33 @@ export default function Categories() {
         <button
           type="button"
           onClick={addCategoryProperties}
-          className="btn-primary !bg-blue-700 block"
+          className="btn-primary !bg-blue-700 block !mt-4"
         >
           Add property
         </button>
         {properties &&
           properties.map((item, i) => (
             <div key={i} className="flex gap-4">
-              <input type="text" onChange={handleChangeProperties(i, item.name, item.value)} placeholder="name" />
-              <input type="text" placeholder="comma seprated values" />
+              <input
+                className="w-1/3"
+                type="text"
+                name="name"
+                onChange={(e) =>
+                  handleChangeProperties(e, i, item.name, item.value)
+                }
+                defaultValue={item.name}
+                placeholder="name"
+              />
+              <input
+                className="w-2/3"
+                type="text"
+                name="value"
+                onChange={(e) =>
+                  handleChangeProperties(e, i, item.name, item.value)
+                }
+                defaultValue={item.value}
+                placeholder="comma seprated values"
+              />
             </div>
           ))}
 
