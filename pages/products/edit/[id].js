@@ -17,7 +17,6 @@ export default function EditProduct() {
         params: { id },
       })
       .then((response) => {
-        console.log(response.data);
         setProduct(response.data);
       });
 

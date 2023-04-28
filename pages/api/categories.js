@@ -1,7 +1,9 @@
 import { mongooseConnect } from "@/lib/mongoose";
 import { Category } from "@/models/Category";
+import { isAdmin } from "./isAdmin";
+import { getSession } from "next-auth/react";
 
-export default async function handler(req, res) {
+const handler = async(req, res) => {
   const { method } = req;
 
   await mongooseConnect();
@@ -13,20 +15,22 @@ export default async function handler(req, res) {
       res.json(await Category.find().populate('parent'));
     }
   } else if (method === "POST") {
-    const { name, parent } = req.body;
+    const { name, parent, properties } = req.body;
     const categoryDoc = await Category.create({
       name,
       parent,
+      properties,
     });
 
     res.json(categoryDoc);
   } else if (method === "PUT") {
-    const { _id, name, parent } = req.body;
+    const { _id, name, parent, properties } = req.body;
     const categoryDoc = await Category.updateOne(
       { _id },
       {
         name,
         parent,
+        properties,
       }
     );
 
@@ -40,3 +44,5 @@ export default async function handler(req, res) {
     return res.json(true);
   }
 }
+
+export default isAdmin(handler);

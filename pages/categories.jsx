@@ -1,24 +1,19 @@
 import Layout from "@/components/Layout";
 import axios from "axios";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import Modal from "@/components/Modal";
+import Cookies from "js-cookie";
 
 export default function Categories() {
   const [categoriesList, setCategoriesList] = useState([]);
   const [categoryData, setCategoryData] = useState({
     _id: null,
     name: "",
-    parent: "",
+    parent: null,
     properties: [],
   });
   const [deleteCategoryId, setDeleteCategoryId] = useState(null);
-  // const [properties, setProperties] = useState([]);
-
-  const [properties, setProperties] = useState([
-    { name: 'color', value: 'red,green,blue' },
-    { name: 'size', value: 'L,M,S' },
-  ]);
+  const [properties, setProperties] = useState([]);
 
   const getCategories = () => {
     axios.get("/api/categories").then((response) => {
@@ -33,6 +28,11 @@ export default function Categories() {
       })
       .then((response) => {
         setCategoryData(response.data);
+        const newProperties = [];
+        response.data?.properties.map((item) => {
+          newProperties.push({ name: item.name, values: item.values });
+        });
+        setProperties(newProperties);
       });
   };
 
@@ -49,26 +49,33 @@ export default function Categories() {
       });
   };
 
-  const addCategoryProperties = () => {
-    setProperties((prev) => [...prev, { name: "", value: "" }]);
-  };
+  function addCategoryProperty() {
+    setProperties((prev) => [...prev, { name: "", values: "" }]);
+  }
 
   const handleChangeProperties = (e, index) => {
     const { name, value } = e.target;
 
-    const newProperties = properties.map((property, i) => {
-      if(i === index){
-        return {...property, [name]: value};
-      }
-      return property;
+    setProperties((prev) => {
+      const properties = [...prev];
+      properties[index][name] = value;
+      return properties;
     });
-
-    setProperties(newProperties);
   };
+
+  function removeProperty(indexToRemove) {
+    setProperties((prev) =>
+      [...prev].filter((_p, index) => index !== indexToRemove)
+    );
+  }
 
   useEffect(() => {
     getCategories();
   }, []);
+
+  useEffect(() => {
+    setCategoryData((prev) => ({ ...prev, properties }));
+  }, [properties]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -81,12 +88,24 @@ export default function Categories() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    //setCategoryData({...categoryData, properties});
+
+    const csrfToken = Cookies.get("next-auth.csrf-token");
 
     if (categoryData._id) {
-      await axios.put("/api/categories", categoryData);
+      await axios.put("/api/categories", categoryData, {
+        headers: {
+          "CSRF-Token": csrfToken,
+          "XSRF-TOKEN": Cookies.get("XSRF-TOKEN"),
+        },
+        withCredentials: true,
+        credentials: "include",
+      });
     } else {
-      await axios.post("/api/categories", categoryData);
+      await axios.post("/api/categories", categoryData, {
+        headers: { "CSRF-Token": csrfToken },
+        withCredentials: true,
+        credentials: "include",
+      });
     }
 
     setCategoryData({
@@ -94,9 +113,24 @@ export default function Categories() {
       _id: null,
       name: "",
       parent: "",
+      properties: [],
     });
 
+    setProperties([]);
+
     getCategories();
+  };
+
+  const cancelEdit = (e) => {
+    setCategoryData({
+      ...categoryData,
+      _id: null,
+      name: "",
+      parent: "",
+      properties: [],
+    });
+
+    setProperties([]);
   };
 
   return (
@@ -149,7 +183,7 @@ export default function Categories() {
             <select
               onChange={handleChange}
               name="parent"
-              defaultValue={categoryData.parent}
+              value={categoryData.parent || ""}
             >
               <option value="">Parent category</option>
               {categoriesList.map(
@@ -166,37 +200,43 @@ export default function Categories() {
 
         <button
           type="button"
-          onClick={addCategoryProperties}
+          onClick={addCategoryProperty}
           className="btn-primary !bg-blue-700 block !mt-4"
         >
           Add property
         </button>
-        {properties &&
-          properties.map((item, i) => (
-            <div key={i} className="flex gap-4">
+        {properties.length > 0 &&
+          properties.map((property, index) => (
+            <div key={index} className="flex gap-1 mb-2">
               <input
-                className="w-1/3"
                 type="text"
                 name="name"
-                onChange={(e) =>
-                  handleChangeProperties(e, i, item.name, item.value)
-                }
-                defaultValue={item.name}
-                placeholder="name"
+                value={property.name}
+                className="mb-0"
+                onChange={(e) => handleChangeProperties(e, index)}
+                placeholder="property name (example: color)"
               />
               <input
-                className="w-2/3"
                 type="text"
-                name="value"
-                onChange={(e) =>
-                  handleChangeProperties(e, i, item.name, item.value)
-                }
-                defaultValue={item.value}
-                placeholder="comma seprated values"
+                name="values"
+                className="mb-0"
+                onChange={(e) => handleChangeProperties(e, index)}
+                value={property.values}
+                placeholder="values, comma separated"
               />
+              <button
+                onClick={() => removeProperty(index)}
+                type="button"
+                className="btn-red"
+              >
+                Remove
+              </button>
             </div>
           ))}
 
+        <button type="button" className="btn-default" onClick={cancelEdit}>
+          Cancel
+        </button>
         <button className="btn-primary">Save</button>
       </form>
 

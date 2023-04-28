@@ -1,13 +1,15 @@
 import { mongooseConnect } from "@/lib/mongoose";
 import { Product } from "@/models/Product";
+import { isAdmin } from "./isAdmin";
 
-export default async function handler(req, res) {
+const handler = async (req, res) => {
   const { method } = req;
 
   await mongooseConnect();
 
   if (method === "POST") {
-    const { title, description, price, category } = req.body;
+    const { title, description, price, images, category, properties } =
+      req.body;
 
     const productDoc = await Product.create({
       title,
@@ -15,10 +17,12 @@ export default async function handler(req, res) {
       price,
       images,
       category,
+      properties,
     });
     res.json(productDoc);
   } else if (method === "PUT") {
-    const { _id, title, description, price, images, category } = req.body;
+    const { _id, title, description, price, images, category, properties } =
+      req.body;
     const productDoc = await Product.updateOne(
       { _id },
       {
@@ -27,6 +31,7 @@ export default async function handler(req, res) {
         price,
         images,
         category,
+        properties,
       }
     );
     res.json(productDoc);
@@ -42,4 +47,6 @@ export default async function handler(req, res) {
     }
     res.json(true);
   }
-}
+};
+
+export default isAdmin(handler);

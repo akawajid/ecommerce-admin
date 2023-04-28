@@ -6,15 +6,15 @@ import { signOut } from "next-auth/react";
 export default function Nav() {
   const inactiveLink = "flex gap-1 p-1";
   const activeLink = inactiveLink + " bg-white text-black rounded-sm";
-  const inactiveIcon = 'w-6 h-6';
-  const activeIcon = inactiveIcon + ' text-primary';
+  const inactiveIcon = "w-6 h-6";
+  const activeIcon = inactiveIcon + " text-primary";
 
   const router = useRouter();
   const { pathname } = router;
 
   const logout = async () => {
-    router.push("/");
     await signOut();
+    router.push("/");
   };
 
   return (
@@ -22,7 +22,10 @@ export default function Nav() {
       <Logo />
       <nav className="flex flex-col gap-2">
         <div className="mb-4 mr-4"></div>
-        <Link className={pathname === '/' ? activeLink : inactiveLink } href={"/"}>
+        <Link
+          className={pathname === "/" ? activeLink : inactiveLink}
+          href={"/"}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -39,7 +42,10 @@ export default function Nav() {
           </svg>
           Dashboard
         </Link>
-        <Link className={pathname === '/products' ? activeLink : inactiveLink } href={"/products"}>
+        <Link
+          className={pathname === "/products" ? activeLink : inactiveLink}
+          href={"/products"}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -58,7 +64,10 @@ export default function Nav() {
           </svg>
           Products
         </Link>
-        <Link className={pathname === '/categories' ? activeLink : inactiveLink } href={"/categories"}>
+        <Link
+          className={pathname === "/categories" ? activeLink : inactiveLink}
+          href={"/categories"}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -77,7 +86,10 @@ export default function Nav() {
           </svg>
           Categories
         </Link>
-        <Link className={pathname === '/orders' ? activeLink : inactiveLink } href={"/orders"}>
+        <Link
+          className={pathname === "/orders" ? activeLink : inactiveLink}
+          href={"/orders"}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -94,7 +106,10 @@ export default function Nav() {
           </svg>
           Orders
         </Link>
-        <Link className={pathname === '/settings' ? activeLink : inactiveLink } href={"/settings"}>
+        <Link
+          className={pathname === "/settings" ? activeLink : inactiveLink}
+          href={"/settings"}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -118,6 +133,23 @@ export default function Nav() {
           </svg>
           Settings
         </Link>
+        <div className="flex p-1 cursor-pointer" onClick={logout}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="w-6 h-6 mr-1"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M7.5 7.5h-.75A2.25 2.25 0 004.5 9.75v7.5a2.25 2.25 0 002.25 2.25h7.5a2.25 2.25 0 002.25-2.25v-7.5a2.25 2.25 0 00-2.25-2.25h-.75m0-3l-3-3m0 0l-3 3m3-3v11.25m6-2.25h.75a2.25 2.25 0 012.25 2.25v7.5a2.25 2.25 0 01-2.25 2.25h-7.5a2.25 2.25 0 01-2.25-2.25v-.75"
+            />
+          </svg>
+          Logout
+        </div>
       </nav>
     </aside>
   );

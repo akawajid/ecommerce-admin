@@ -2,7 +2,7 @@ import mongoose, {model, models, Schema} from "mongoose";
 
 const PropertySchema = new Schema({
     name: String,
-    value: String,
+    values: String,
   });
 
 const CategorySchema = new Schema({

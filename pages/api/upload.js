@@ -1,8 +1,9 @@
 import multiparty from "multiparty";
 import fs from "fs";
 import { nanoid } from "nanoid";
+import { isAdmin } from "./isAdmin";
 
-export default async function handler(req, res) {
+const handler = async (req, res) => {
   if (req.method !== "POST") return res.json("Bad request");
 
   const form = new multiparty.Form();
@@ -37,3 +38,5 @@ export const config = {
     bodyParser: false,
   },
 };
+
+export default isAdmin(handler);

@@ -1,8 +1,9 @@
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ReactSortable } from "react-sortablejs";
+import Cookies from "js-cookie";
 
 export default function ProductForm({
   _id,
@@ -11,6 +12,7 @@ export default function ProductForm({
   price,
   images: oldImages,
   category,
+  properties,
 }) {
   const router = useRouter();
   const [productData, setProductData] = useState({
@@ -20,27 +22,35 @@ export default function ProductForm({
     price: price || "",
     images: oldImages || [],
     category: category || null,
+    properties: properties || [],
   });
 
   const [categoriesList, setCategoriesList] = useState([]);
   const [images, setImages] = useState(productData.images || []);
   const [isUploading, setIsUploading] = useState(false);
+  const [categoryProperties, setCategoryProperties] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProductData({
       ...productData,
-      [name]: name === 'category' && value === '' ? null : value,
+      [name]: name === "category" && value === "" ? null : value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const csrfToken = Cookies.get("next-auth.csrf-token");
+
     if (productData._id) {
-      await axios.put("/api/products", productData);
+      await axios.put("/api/products", productData, {
+        headers: { "CSRF-Token": csrfToken },
+      });
     } else {
-      await axios.post("/api/products", productData);
+      await axios.post("/api/products", productData, {
+        headers: { "CSRF-Token": csrfToken },
+      });
     }
     router.push("/products");
   };
@@ -82,6 +92,72 @@ export default function ProductForm({
     }));
   }, [images]);
 
+  const handleSelectedProperties = (index, value) => {
+    const properties = productData?.properties.map((item, i) => {
+      item.values = i === index ? value : item.values;
+      return item;
+    });
+
+    setProductData((p) => ({
+      ...p,
+      properties,
+    }));
+  };
+
+  const getCategoryProperties = async (_id) => {
+    const response = await axios.get("/api/categories", { params: { _id } });
+    return response.data;
+  };
+
+  const propertiesInitialized = useRef(false);
+
+  useEffect(() => {
+    if (!productData.category) {
+      return;
+    }
+
+    const defaultProductProperties = [];
+    getCategoryProperties(productData.category).then((category) => {
+      setCategoryProperties(category?.properties);
+
+      category?.properties.map(({ _id, name }) => {
+        const existingProductProperty = productData.properties.find(
+          (existingItem) => existingItem.property === _id
+        );
+        defaultProductProperties.push({
+          property:_id,
+          name,
+          values: existingProductProperty?.values || "",
+        });
+      });
+
+      while (category?.parent_id) {
+        const category = getCategoryProperties(category?.parent_id).then(() => {
+          setCategoryProperties((prev) => [...prev, category?.properties]);
+
+          category?.properties.map(({ _id, name }) => {
+            const existingProductProperty = productData.properties.find(
+              (existingItem) => existingItem.property === _id
+            );
+            defaultProductProperties.push({
+              property:_id,
+              name,
+              values: existingProductProperty?.values || "",
+            });
+          });
+        });
+      }
+    });
+
+    if (!propertiesInitialized.current) {
+      setProductData((p) => ({
+        ...p,
+        properties: defaultProductProperties,
+      }));
+      propertiesInitialized.current = true;
+    }
+  }, [productData.category, productData.properties]);
+
   return (
     <form onSubmit={handleSubmit} encType="multipart/form-data">
       <label>Product title</label>
@@ -112,6 +188,39 @@ export default function ProductForm({
       ) : (
         <input value="Select category" readOnly />
       )}
+
+      {productData.properties && categoryProperties.length > 0 ? (
+        <div>
+          {categoryProperties.map((property, i) => {
+            const existingProductProperty = productData.properties.find(
+              (existingItem) => existingItem.property === property._id
+            );
+            return (
+              <div key={i} className="flex gap-1 mb-2 w-3/4">
+                <input
+                  readOnly
+                  type="text"
+                  value={property.name}
+                  className="mb-0 w-1/3"
+                />
+                <select
+                  className="mb-0"
+                  required
+                  value={existingProductProperty?.values || ''}
+                  onChange={(e) => handleSelectedProperties(i, e.target.value)}
+                >
+                  <option value="">Select variant</option>
+                  {property.values?.split(",").map((value, i) => (
+                    <option key={i} value={value.trim()}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
 
       <label>Product description</label>
       <textarea
@@ -188,7 +297,9 @@ export default function ProductForm({
       )}
 
       <button className="btn-primary">Save</button>
-      <button onClick={() => router.back()} className="btn-default">Cancel</button>
+      <button onClick={() => router.back()} className="btn-default">
+        Cancel
+      </button>
     </form>
   );
 }

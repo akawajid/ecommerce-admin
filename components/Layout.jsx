@@ -5,13 +5,17 @@ import Head from "next/head";
 export default function Layout({ children }) {
   const { data: session } = useSession();
 
+  const login = async (e) => {
+    e.preventDefault();
+    await signIn("google")
+  }
   if (!session) {
     return (
       <div className="bg-blue-900 w-screen h-screen flex items-center align-middle">
         <Head><title>NextJS Ecommerce - Admin Panel</title></Head>
         <div className="text-center w-full">
           <button
-            onClick={() => signIn("google")}
+            onClick={login}
             className="bg-white p-2 px-4 rounded-lg"
           >
             Login with Google
