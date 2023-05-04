@@ -1,18 +1,13 @@
-import { getSession } from "next-auth/react";
+import { getServerSession } from "next-auth";
+import { authOptions } from './auth/[...nextauth]';
 
-export const isAdmin =
-  ( handler ) =>
-  async (req, res) => {
-    const session = await getSession({ req });
+export const isAdmin = (handler) => async (req, res) => {
+  const session = await getServerSession(req, res,  authOptions);
 
-    console.log('header.cookies:',req.headers.cookie);
-    console.log('req.cookies:',req.cookies);
-    console.log('session:',session);
+  if (!session || session?.user?.isAdmin === false) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
 
-    if (!session || session?.user?.isAdmin === false) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
-    return handler(req, res);
-  };
+  return handler(req, res);
+};

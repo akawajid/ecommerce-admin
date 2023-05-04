@@ -1,7 +1,6 @@
 import { mongooseConnect } from "@/lib/mongoose";
 import { Category } from "@/models/Category";
 import { isAdmin } from "./isAdmin";
-import { getSession } from "next-auth/react";
 
 const handler = async(req, res) => {
   const { method } = req;
