@@ -7,12 +7,17 @@ export default function Orders() {
 
   const getOrders = async () => {
     const response = await axios.get("/api/orders");
+    // console.log(response);
     setOrders(response?.data?.orders || []);
   };
 
   useEffect(() => {
     getOrders();
   }, []);
+
+  useEffect(() => {
+    // console.log(orders)
+  }, [orders]);
 
   return (
     <Layout>
@@ -30,7 +35,7 @@ export default function Orders() {
           </thead>
           <tbody>
             {orders.length ? (
-              orders.map((item, i) => {
+              orders.map((order, i) => {
                 const {
                   name,
                   email,
@@ -39,11 +44,12 @@ export default function Orders() {
                   city,
                   country,
                   line_items,
-                } = item;
+                } = order;
+                console.log('order:', order);
                 const products_detail = [];
                 const recipient_detail = [];
                 line_items.forEach((item) => {
-                  console.log(item);
+                  console.log('line_item:', item);
                   products_detail.push(
                     `${item?.price_data?.product_data?.name} X ${item?.quantity}`
                   );
@@ -55,8 +61,8 @@ export default function Orders() {
                 return (
                   <tr key={i}>
                     <td>{i + 1}</td>
-                    <td>{item._id.slice(-6)}</td>
-                    <td>{item.created_at}</td>
+                    <td>{order._id.slice(-6)}</td>
+                    <td>{order.created_at}</td>
                     <td>
                       <div className="whitespace-pre">
                         {recipient_detail.join("\r\n")}
