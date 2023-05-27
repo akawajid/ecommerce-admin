@@ -7,17 +7,12 @@ export default function Orders() {
 
   const getOrders = async () => {
     const response = await axios.get("/api/orders");
-    // console.log(response);
     setOrders(response?.data?.orders || []);
   };
 
   useEffect(() => {
     getOrders();
   }, []);
-
-  useEffect(() => {
-    // console.log(orders)
-  }, [orders]);
 
   return (
     <Layout>
@@ -29,6 +24,7 @@ export default function Orders() {
               <td>Index</td>
               <td>Order No</td>
               <td>Date</td>
+              <td>Paid</td>
               <td>Shipping Detail</td>
               <td>Products</td>
             </tr>
@@ -62,7 +58,14 @@ export default function Orders() {
                   <tr key={i}>
                     <td>{i + 1}</td>
                     <td>{order._id.slice(-6)}</td>
-                    <td>{order.created_at}</td>
+                    <td>{new Date(order.createdAt).toLocaleString()}</td>
+                    <td>
+                      {order.paid ? (
+                        <span className="text-green-700 text-bold">YES</span>
+                      ) : (
+                        <span className="text-red-500 font-bold">NO</span>
+                      )}
+                    </td>
                     <td>
                       <div className="whitespace-pre">
                         {recipient_detail.join("\r\n")}
